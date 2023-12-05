@@ -1,0 +1,17 @@
+{
+  "GamesHub": {
+    "GH-01": "Caller is not a Project Contract or an Administrator",
+    "GH-02": "Invalid Contract Address",
+    "GH-03": "Contract Call Failed"
+  },
+  "CoinFlip": {
+    "CF-01": "The amount is not in the range limit of the game.",
+    "CF-02": "Game balance is not sufficient to cover potential payout.",
+    "CF-03": "Caller is not the authorized Random Number Generator.",
+    "CF-04": "Game result has already been set.",
+    "CF-05": "You are not an Administrator.",
+    "CF-06": "Maximum limit must be greater than or equal to the minimum limit.",
+    "CF-07": "Cannot withdraw tokens while games are in progress.",
+    "CF-08": "House chance cannot be more than 90%."
+  }
+}

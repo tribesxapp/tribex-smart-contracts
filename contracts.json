@@ -1,0 +1,55 @@
+{
+  "TOKEN_ADDRESS": {
+    "base-testnet": "0xb1a684352b7D4dE1eFd6ee6fa1fc4df8894fF24b",
+    "base": "0x4E5d2839D0B49EFA149a1d6c32d761E882386676",
+    "polygon": "0xaD55a4E5e299060375599df5fcE39A447Cda5793",
+    "mumbai": "0xC967523D9d0085EA55F1fdDe36bE6E58485105Cb",
+    "arbitrum": ""
+  },
+  "GAMES_HUB": {
+    "base-testnet": "0x89b89aE57067815C7900ceF62af48A4F21Bcd2f1",
+    "base": "0x302c72a9604d297bF4168cE2beE9E11bcaA704F7",
+    "polygon": "0xF3BBc7f3Ae6d94577930458497d1c987305d7BE7",
+    "mumbai": "0xE485bA0846514128E327493CCD8a828291d8fae4",
+    "arbitrum": ""
+  },
+  "COIN_FLIP": {
+    "base-testnet": "0xCa911d2dea81CA286Ee547084edC9C90ba55c177",
+    "base": "0x770DDC2a9989A5211A56d99063e56E380EF5DC09",
+    "polygon": "0x60C96eF51Da278f4a9b2c0244023D74d7C262c5F",
+    "mumbai": "0xC1313910AA08D9deFb55c6Ea7a72bCE34b3f9CC8",
+    "arbitrum": ""
+  },
+  "ADMIN_WALLET": {
+    "base-testnet": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "base": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "polygon": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "mumbai": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "arbitrum": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2"
+  },
+  "TREASURY": {
+    "base-testnet": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "base": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "polygon": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "mumbai": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2",
+    "arbitrum": "0x30dF3855147f73d6981f515A02B2c8Dd2dd00ba2"
+  },
+  "Chainlink": {
+    "mumbai": {
+      "subscription": 6619,
+      "confirmations": 3,
+      "callbackGasLimit": 2500000,
+      "linkToken": "0x326C977E6efc84E512bB9C30f76E30c160eD06FB",
+      "vrfCoordinator": "0x7a1BaC17Ccc5b313516C5E16fb24f7659aA5ebed",
+      "keyHash": "0x4b09e658ed251bcafeebbc69400383d49f344ace09b9576fe248bb02c003fe9f"
+    },
+    "arbitrum": {
+      "subscription": 133,
+      "confirmations": 1,
+      "callbackGasLimit": 2500000,
+      "linkToken": "0x6F43FF82CCA38001B6699a8AC47A2d0E66939407",
+      "vrfCoordinator": "0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634",
+      "keyHash": "0x5881eea62f9876043df723cf89f0c2bb6f950da25e9dfe66995c24f919c8f8ab"
+    }
+  }
+}
