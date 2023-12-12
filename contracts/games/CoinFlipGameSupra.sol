@@ -1,13 +1,27 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.19;
 
-import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
-import "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import "../interfaces/IGamesHub.sol";
 import "../interfaces/IERC20.sol";
 
-contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
+interface ISupraRouter {
+    function generateRequest(
+        string memory _functionSig,
+        uint8 _rngCount,
+        uint256 _numConfirmations,
+        uint256 _clientSeed,
+        address _clientWalletAddress
+    ) external returns (uint256);
+
+    function generateRequest(
+        string memory _functionSig,
+        uint8 _rngCount,
+        uint256 _numConfirmations,
+        address _clientWalletAddress
+    ) external returns (uint256);
+}
+
+contract CoinFlipGameSupra {
     event CoinFlipped(
         address indexed player,
         uint256 indexed nonce,
@@ -37,6 +51,8 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
     );
     event ForcedResend(uint256 _nonce);
 
+    event ConfirmationsChanged(uint16 _requestConfirmations);
+
     IGamesHub public gamesHub;
     IERC20 public token;
     uint256 public totalBet;
@@ -54,33 +70,23 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         uint8 result; // 0- not set, 1- win, 2- lose, 3- refunded
     }
     mapping(uint256 => Games) public games;
-
-    VRFCoordinatorV2Interface COORDINATOR;
-
-    // Chainlink subscription data struct, with the same subscription ID type as the VRF Coordinator
-    uint64 s_subscriptionId;
-    bytes32 keyHash;
-    uint32 callbackGasLimit;
-    uint16 requestConfirmations;
-
     mapping(uint256 => uint256) gameNonce;
 
+    address private supraAddr;
+    address private deployer;
+    uint16 public requestConfirmations;
+
     constructor(
-        uint64 subscriptionId,
-        address vrfCoordinator,
-        bytes32 _keyHash,
-        uint32 _callbackGasLimit,
+        address supraSC,
         uint16 _requestConfirmations,
         address _gamesHub
-    ) VRFConsumerBaseV2(vrfCoordinator) ConfirmedOwner(msg.sender) {
-        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
-        s_subscriptionId = subscriptionId;
-        keyHash = _keyHash;
-        callbackGasLimit = _callbackGasLimit;
-        requestConfirmations = _requestConfirmations;
+    ) {
         gamesHub = IGamesHub(_gamesHub);
         token = IERC20(gamesHub.helpers(keccak256("TOKEN")));
         totalBet = 0;
+        supraAddr = supraSC;
+        deployer = msg.sender;
+        requestConfirmations = _requestConfirmations;
     }
 
     /**
@@ -116,12 +122,11 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
 
         games[gamesHub.nonce()] = Games(msg.sender, _amount, _heads, 0);
 
-        uint256 nonce = COORDINATOR.requestRandomWords(
-            keyHash,
-            s_subscriptionId,
+        uint256 nonce = ISupraRouter(supraAddr).generateRequest(
+            "callback(uint256,uint256[])",
+            1,
             requestConfirmations,
-            callbackGasLimit,
-            1
+            deployer
         );
         gameNonce[nonce] = gamesHub.nonce();
 
@@ -130,21 +135,19 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         emit CoinFlipped(msg.sender, gamesHub.nonce(), nonce, _amount);
     }
 
-    function fulfillRandomWords(
-        uint256 _requestId,
-        uint256[] memory _randomWords
-    ) internal override {
-        Games storage game = games[gameNonce[_requestId]];
+    function callback(uint256 nonce, uint256[] calldata rngList) external {
+        require(msg.sender == supraAddr, "CF-03");
+        Games storage game = games[gameNonce[nonce]];
         if (game.result > 0) return;
 
         uint256 volume = 0;
-        bool heads = (_randomWords[0] % 2) == 1;
+        bool heads = (rngList[0] % 2) == 1;
 
         if ((heads && game.heads) || (!heads && !game.heads)) {
             game.result = 1;
             uint256 _fee = (game.amount * feePercFromWin) / 1000;
             volume = game.amount - _fee;
-            token.transfer(game.player, volume - _fee);
+            token.transfer(game.player, volume);
             token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
             game.result = 2;
@@ -152,34 +155,14 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         totalBet -= game.amount;
 
         emit GameFinished(
-            gameNonce[_requestId],
+            gameNonce[nonce],
             game.player,
             game.amount,
             volume,
             game.result,
-            _randomWords[0],
+            rngList[0],
             heads
         );
-    }
-
-    /**
-     * @dev Resend the game to the SupraOracles. To use only if some game is stuck.
-     * @param _nonce Nonce of the game
-     */
-    function resendGame(uint256 _nonce) external {
-        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
-
-        uint256 nonce = COORDINATOR.requestRandomWords(
-            keyHash,
-            s_subscriptionId,
-            requestConfirmations,
-            callbackGasLimit,
-            1
-        );
-        gameNonce[nonce] = gameNonce[_nonce];
-        delete gameNonce[_nonce];
-
-        emit ForcedResend(_nonce);
     }
 
     /**
@@ -193,6 +176,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
 
         token.transfer(game.player, game.amount);
         totalBet -= game.amount;
+        game.amount = 0;
         game.result = 3;
 
         emit GameRefunded(_nonce, game.player, game.amount);
@@ -233,6 +217,12 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
             _feeFromBet,
             _feePercFromWin
         );
+    }
+
+    function changeConfirmations(uint16 _requestConfirmations) public {
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
+        requestConfirmations = _requestConfirmations;
+        emit ConfirmationsChanged(_requestConfirmations);
     }
 
     /**

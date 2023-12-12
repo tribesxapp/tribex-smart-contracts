@@ -1,29 +1,41 @@
-import HDWalletProvider from "@truffle/hdwallet-provider";
-import dotenv from "dotenv";
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+require("dotenv").config();
 
-dotenv.config();
+const privateKey = process.env.PRIVATE_KEY; 
+const mumbaiRpcUrl = process.env.MUMBAI_RPC_URL;
+const polygonRpcUrl = process.env.POLYGON_RPC_URL;
+const baseRpcUrl = process.env.BASE_RPC_URL;
 
-const privateKey = process.env.PRIVATE_KEY;
-const rpcUrl = process.env.RPC_URL;
-
-if (!privateKey || !rpcUrl) {
-  throw new Error("PRIVATE_KEY or RPC_URL not found in environment variables");
-}
-
-const config = {
+module.exports = {
   networks: {
-    development: {
-      host: "127.0.0.1",     
-      port: 7545,            
-      network_id: "*",       
+    base: {
+      provider: () => new HDWalletProvider(privateKey, baseRpcUrl),
+      network_id: 8453,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      skipDryRun: true,
     },
     mumbai: {
-      provider: () => new HDWalletProvider(privateKey, rpcUrl),
+      provider: () => new HDWalletProvider(privateKey, mumbaiRpcUrl),
       network_id: 80001,
       confirmations: 2,
       timeoutBlocks: 200,
-      skipDryRun: true
+      skipDryRun: true,
     },
+    polygon: {
+      provider: () => new HDWalletProvider(privateKey, polygonRpcUrl),
+      network_id: 137,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      skipDryRun: true,
+    },
+    arbitrum: {
+      provider: () => new HDWalletProvider(privateKey, polygonRpcUrl),
+      network_id: 42161,
+      confirmations: 2,
+      timeoutBlocks: 200,
+      skipDryRun: true,
+    }
   },
 
   compilers: {
@@ -32,10 +44,17 @@ const config = {
       settings: {
         optimizer: {
           enabled: true,
-          runs: 200
+          runs: 200,
         },
-      }
-    }
+      },
+    },
+  },
+  plugins: ["truffle-plugin-verify"],
+
+  api_keys: {
+    polygonscan: process.env.POLYGON_BLOCK_EXPLORER_API_KEY,
+    arbiscan: process.env.ARBITRUM_BLOCK_EXPLORER_API_KEY,
+    basescan: process.env.BASE_BLOCK_EXPLORER_API_KEY
   },
 
   mocha: {
@@ -43,8 +62,6 @@ const config = {
   },
 
   db: {
-    enabled: false
-  }
+    enabled: false,
+  },
 };
-
-export default config;

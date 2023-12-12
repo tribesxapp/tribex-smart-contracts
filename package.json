@@ -1,33 +1,32 @@
 {
-  "name": "tribex-contracts-v2",
+  "name": "tribex-betting-contracts",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "main": "index.js",
   "repository": "https://bitbucket.org/tribesx/tribexcontractsv2/src/main/",
   "author": "gabesan21 <141934803+suportelider@users.noreply.github.com>",
   "license": "MIT",
   "dependencies": {
-    "@api3/airnode-admin": "^0.6.0",
-    "@api3/airnode-protocol": "^0.6.0",
-    "@chainlink/contracts": "^0.8.0",
     "@openzeppelin/contracts": "^4.8.3",
+    "@chainlink/contracts": "^0.8.0",
+    "@truffle/contract": "^4.6.31",
     "@truffle/hdwallet-provider": "^2.1.15",
-    "@uniswap/v3-core": "^1.0.1",
-    "@uniswap/v3-periphery": "^1.4.4",
     "axios": "^1.5.1",
     "dotenv": "^16.3.1",
     "ethers": "^5.5.2",
     "fs-extra": "^11.1.1",
-    "solc": "0.8.19",
+    "solc": "^0.8.23-fixed",
     "truffle-flattener": "^1.6.0",
+    "truffle-plugin-verify": "^0.6.7",
     "web3": "^4.1.2"
   },
   "scripts": {
-    "deploy-token": "node scripts/deploy_token.js",
-    "deploy-games-hub": "node scripts/deploy_games_hub.js",
-    "initial-config": "node scripts/initial_config.js",
-    "deploy-coin-flip": "node scripts/deploy_coin_flip.js",
-    "fund-coin-flip": "node scripts/fund_coinflip.js",
-    "play-coin-flip": "node scripts/play_coin_flip.js"
+    "clean-cache": "truffle networks --clean-cache",
+    "compile": "truffle compile",
+    "deploy": "truffle migrate --network",
+    "verify-games-hub": "truffle run verify GamesHub --license MIT --network",
+    "verify-token": "truffle run verify utils/FakeUSDCToken --license MIT --network",
+    "verify-coin-flip-chainlink": "truffle run verify CoinFlipGame --license MIT --network",
+    "verify-coin-flip-supra": "truffle run verify CoinFlipGameSupra --license MIT --network"
   }
 }
