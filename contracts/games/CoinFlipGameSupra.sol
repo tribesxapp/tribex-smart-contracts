@@ -153,6 +153,7 @@ contract CoinFlipGameSupra {
             game.result = 1;
             uint256 _fee = (game.amount * feePercFromWin) / 1000;
             volume = game.amount - _fee;
+            volume += game.amount;
             token.transfer(game.player, volume);
             token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {

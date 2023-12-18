@@ -23,6 +23,6 @@
     "DC-06": "Maximum limit must be greater than or equal to the minimum limit.",
     "DC-07": "Cannot withdraw tokens while games are in progress.",
     "DC-08": "House fee cannot be greater than 50%.",
-    "DC-09": "The game must have at least 1 side."
+    "DC-09": "The game must have at least 1 valid side."
   }
 }

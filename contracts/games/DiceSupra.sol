@@ -113,7 +113,7 @@ contract DiceSupra {
         gamesHub.incrementNonce();
 
         for (uint8 i = 0; i < 5; i++) {
-            if (_sides[i] > 0 && !games[gamesHub.nonce()].sides[_sides[i]]) {
+            if (_sides[i] > 0 && _sides[i] < 7 && !games[gamesHub.nonce()].sides[_sides[i]]) {
                 games[gamesHub.nonce()].sides[_sides[i]] = true;
                 games[gamesHub.nonce()].sizeBet += 1;
             }
@@ -164,10 +164,9 @@ contract DiceSupra {
         if (game.sides[diceResult]) {
             game.result = 1;
             volume = (game.amount * 6) / game.sizeBet;
-            uint256 _fee = (volume * feePercFromWin) / 1000;
+            uint256 _fee = ((volume - game.amount) * feePercFromWin) / 1000;
 
             volume -= _fee;
-            volume += game.amount;
             token.transfer(game.player, volume);
             token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
