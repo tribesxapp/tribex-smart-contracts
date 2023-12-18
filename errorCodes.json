@@ -12,6 +12,17 @@
     "CF-05": "You are not an Administrator.",
     "CF-06": "Maximum limit must be greater than or equal to the minimum limit.",
     "CF-07": "Cannot withdraw tokens while games are in progress.",
-    "CF-08": "House chance cannot be more than 90%."
+    "CF-08": "House fee cannot be greater than 50%."
+  },
+  "Dice": {
+    "DC-01": "The amount is not in the range limit of the game.",
+    "DC-02": "Game balance is not sufficient to cover potential payout.",
+    "DC-03": "Caller is not the authorized Random Number Generator.",
+    "DC-04": "Game result has already been set.",
+    "DC-05": "You are not an Administrator.",
+    "DC-06": "Maximum limit must be greater than or equal to the minimum limit.",
+    "DC-07": "Cannot withdraw tokens while games are in progress.",
+    "DC-08": "House fee cannot be greater than 50%.",
+    "DC-09": "The game must have at least 1 side."
   }
 }

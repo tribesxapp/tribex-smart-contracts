@@ -49,7 +49,6 @@ contract CoinFlipGameSupra {
         address indexed player,
         uint256 volume
     );
-    event ForcedResend(uint256 _nonce);
 
     event ConfirmationsChanged(uint16 _requestConfirmations);
 
@@ -112,7 +111,9 @@ contract CoinFlipGameSupra {
 
         gamesHub.incrementNonce();
 
-        token.transferFrom(msg.sender, address(this), _amount - feeFromBet);
+        _amount -= feeFromBet;
+
+        token.transferFrom(msg.sender, address(this), _amount);
         // Sending fee to the house
         token.transferFrom(
             msg.sender,
@@ -135,6 +136,11 @@ contract CoinFlipGameSupra {
         emit CoinFlipped(msg.sender, gamesHub.nonce(), nonce, _amount);
     }
 
+    /**
+     * @dev Callback function from the SupraOracles contract
+     * @param nonce Nonce of the game
+     * @param rngList Random number list
+     */
     function callback(uint256 nonce, uint256[] calldata rngList) external {
         require(msg.sender == supraAddr, "CF-03");
         Games storage game = games[gameNonce[nonce]];
@@ -199,6 +205,7 @@ contract CoinFlipGameSupra {
     ) public {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
         require(_maxLimit >= _minLimit, "CF-06");
+        require(_feePercFromWin <= 500, "CF-08");
 
         if (!limitTypeFixed) {
             require(_maxLimit <= 100 && _minLimit <= 100, "CF-12");
@@ -219,6 +226,10 @@ contract CoinFlipGameSupra {
         );
     }
 
+    /**
+     * @dev Change the number of confirmations required for the request
+     * @param _requestConfirmations Number of confirmations
+     */
     function changeConfirmations(uint16 _requestConfirmations) public {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
         requestConfirmations = _requestConfirmations;

@@ -22,11 +22,18 @@
   },
   "scripts": {
     "clean-cache": "truffle networks --clean-cache",
+    "extract-abis": "node scripts/extractAbis.js",
     "compile": "truffle compile",
     "deploy": "truffle migrate --network",
     "verify-games-hub": "truffle run verify GamesHub --license MIT --network",
     "verify-token": "truffle run verify utils/FakeUSDCToken --license MIT --network",
     "verify-coin-flip-chainlink": "truffle run verify CoinFlipGame --license MIT --network",
-    "verify-coin-flip-supra": "truffle run verify CoinFlipGameSupra --license MIT --network"
+    "verify-dice-chainlink": "truffle run verify DiceChainlink --license MIT --network",
+    "verify-dice-supra": "truffle run verify DiceSupra --license MIT --network",
+    "verify-coin-flip-supra": "truffle run verify CoinFlipGameSupra --license MIT --network",
+    "play-coin-flip": "truffle exec scripts/play-coin-flip.js --network",
+    "play-dice": "truffle exec scripts/play-dice.js --network",
+    "send-tokens": "truffle exec scripts/send-tokens.js --network",
+    "fund-games": "truffle exec scripts/fund-games.js --network"
   }
 }

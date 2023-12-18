@@ -7,8 +7,8 @@ import "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import "../interfaces/IGamesHub.sol";
 import "../interfaces/IERC20.sol";
 
-contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
-    event CoinFlipped(
+contract DiceChainlink is VRFConsumerBaseV2, ConfirmedOwner {
+    event DiceRolled(
         address indexed player,
         uint256 indexed nonce,
         uint256 indexed rngNonce,
@@ -21,7 +21,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         uint256 volumeOut,
         uint8 result,
         uint256 randomness,
-        bool heads
+        uint8 diceResult
     );
     event LimitsAndChancesChanged(
         uint256 maxLimit,
@@ -49,7 +49,9 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
     struct Games {
         address player;
         uint256 amount;
-        bool heads;
+        uint8[5] bet;
+        mapping(uint8 => bool) sides; // true if the side is bet
+        uint8 sizeBet; // number of sides bet
         uint8 result; // 0- not set, 1- win, 2- lose, 3- refunded
     }
     mapping(uint256 => Games) public games;
@@ -83,28 +85,37 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
     }
 
     /**
-     * @dev Flip the coin, setting the bet amount and the side of the coin
-     * A request will be sent to the SupraOracles contract to get a random number
-     * @param _heads Heads or Tails
+     * @dev Roll the dice, sending the numbers from 1 to 6
+     * Repeated numbers will be ignored
+     * @param _sides Array of 5 sides to bet on (numbers 1 to 6, 0 if side not chosen)
      * @param _amount Amount of tokens to bet
      */
-    function coinFlip(bool _heads, uint256 _amount) external {
+    function rollDice(uint8[5] memory _sides, uint256 _amount) external {
         uint256 balance = token.balanceOf(address(this));
 
         if (limitTypeFixed) {
-            require(_amount <= maxLimit && _amount >= minLimit, "CF-01");
+            require(_amount <= maxLimit && _amount >= minLimit, "DC-01");
         } else {
             require(
                 _amount <= (maxLimit * balance) / 100 &&
                     _amount >= (minLimit * balance) / 100,
-                "CF-01"
+                "DC-01"
             );
         }
 
-        require(balance >= ((totalBet + _amount) * 2), "CF-02");
+        require(balance >= ((totalBet + _amount) * 6), "DC-02");
 
         gamesHub.incrementNonce();
-        
+
+        for (uint8 i = 0; i < 5; i++) {
+            if (_sides[i] > 0 && !games[gamesHub.nonce()].sides[_sides[i]]) {
+                games[gamesHub.nonce()].sides[_sides[i]] = true;
+                games[gamesHub.nonce()].sizeBet += 1;
+            }
+        }
+
+        require(games[gamesHub.nonce()].sizeBet > 0, "DC-09");
+
         _amount -= feeFromBet;
 
         token.transferFrom(msg.sender, address(this), _amount);
@@ -115,7 +126,9 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
             feeFromBet
         );
 
-        games[gamesHub.nonce()] = Games(msg.sender, _amount, _heads, 0);
+        games[gamesHub.nonce()].player = msg.sender;
+        games[gamesHub.nonce()].amount = _amount;
+        games[gamesHub.nonce()].bet = _sides;
 
         uint256 nonce = COORDINATOR.requestRandomWords(
             keyHash,
@@ -128,11 +141,12 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
 
         totalBet += _amount;
         totalGames += 1;
-        emit CoinFlipped(msg.sender, gamesHub.nonce(), nonce, _amount);
+        emit DiceRolled(msg.sender, gamesHub.nonce(), nonce, _amount);
     }
 
     /**
-     * @dev Callback function from the SupraOracles contract
+     * @dev Callback function from the Chainlink VRF Coordinator
+     * It will determine if the player won or lost and send the tokens to the player if he won
      * @param _requestId Request ID of the random number
      * @param _randomWords Random number
      */
@@ -144,12 +158,15 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         if (game.result > 0) return;
 
         uint256 volume = 0;
-        bool heads = (_randomWords[0] % 2) == 1;
+        uint8 diceResult = uint8((_randomWords[0] % 6)) + 1;
 
-        if ((heads && game.heads) || (!heads && !game.heads)) {
+        if (game.sides[diceResult]) {
             game.result = 1;
-            uint256 _fee = (game.amount * feePercFromWin) / 1000;
-            volume = game.amount - _fee;
+            volume = (game.amount * 6) / game.sizeBet;
+            uint256 _fee = (volume * feePercFromWin) / 1000;
+
+            volume -= _fee;
+            volume += game.amount;
             token.transfer(game.player, volume);
             token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
@@ -164,7 +181,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
             volume,
             game.result,
             _randomWords[0],
-            heads
+            diceResult
         );
     }
 
@@ -173,9 +190,9 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
      * @param _nonce Nonce of the game
      */
     function refundGame(uint256 _nonce) external {
-        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         Games storage game = games[_nonce];
-        require(game.result == 0, "CF-04");
+        require(game.result == 0, "DC-04");
 
         token.transfer(game.player, game.amount);
         totalBet -= game.amount;
@@ -199,12 +216,12 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         uint8 _feeFromBet,
         uint8 _feePercFromWin
     ) public {
-        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
-        require(_maxLimit >= _minLimit, "CF-06");
-        require(_feePercFromWin <= 500, "CF-08");
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
+        require(_maxLimit >= _minLimit, "DC-06");
+        require(_feePercFromWin <= 500, "DC-08");
 
         if (!limitTypeFixed) {
-            require(_maxLimit <= 100 && _minLimit <= 100, "CF-12");
+            require(_maxLimit <= 100 && _minLimit <= 100, "DC-12");
         }
 
         maxLimit = _maxLimit;
@@ -227,8 +244,8 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
      * @param _token New token address
      */
     function changeToken(address _token) public {
-        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
-        require(totalBet == 0, "CF-07");
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
+        require(totalBet == 0, "DC-07");
 
         token.transfer(gamesHub.adminWallet(), token.balanceOf(address(this)));
         token = IERC20(_token);
@@ -239,7 +256,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
      * @param _keyHash New key hash
      */
     function changeKeyHash(bytes32 _keyHash) public {
-        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         keyHash = _keyHash;
     }
 
@@ -248,8 +265,8 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
      * @param _amount Amount of tokens to withdraw
      */
     function withdrawTokens(uint256 _amount) public {
-        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
-        require(totalBet == 0, "CF-07");
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
+        require(totalBet == 0, "DC-07");
 
         token.transfer(gamesHub.adminWallet(), _amount);
     }

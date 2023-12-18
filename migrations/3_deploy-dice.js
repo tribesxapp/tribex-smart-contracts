@@ -1,7 +1,7 @@
 const fs = require("fs-extra");
 const path = require("path");
-const CoinFlipChainlink = artifacts.require("games/CoinFlipGame");
-const CoinFlipSupra = artifacts.require("games/CoinFlipGameSupra");
+const DiceChainlink = artifacts.require("games/DiceChainlink");
+const DiceSupra = artifacts.require("games/DiceSupra");
 const FakeUSDCToken = artifacts.require("utils/FakeUSDCToken");
 const GamesHub = artifacts.require("GamesHub");
 
@@ -17,21 +17,22 @@ module.exports = async function (deployer, network, accounts) {
 
   const fakeToken = await FakeUSDCToken.at(networkData.TOKEN_ADDRESS);
 
-  /// Deploy CoinFlip
-  let coinFlip;
+  /// Deploy Dice
+  let dice;
   let name;
-  let CoinFlip;
+  let Dice;
 
-  if (networkData.COIN_FLIP === "") {
-    console.log(`Deploying CoinFlip...`);
+  if (networkData.DICE === "") {
+    console.log(`Deploying Dice...`);
 
-    /// Set CoinFlip Type
+    /// Set Dice Type
     if (networkData.RandomType === "Chainlink") {
-      CoinFlip = CoinFlipChainlink;
-      name = "COIN_FLIP_CHAINLINK"
+      Dice = DiceChainlink;
+      name = "DICE_CHAINLINK"
+      console.log(`Deploying DiceChainlink...`);
 
       await deployer.deploy(
-        CoinFlip,
+        Dice,
         networkData.VRF.subscription,
         networkData.VRF.vrfCoordinator,
         networkData.VRF.keyHash,
@@ -40,35 +41,36 @@ module.exports = async function (deployer, network, accounts) {
         gamesHub.address
       );
     } else {
-      CoinFlip = CoinFlipSupra;
-      name = "COIN_FLIP_SUPRA"
+      Dice = DiceSupra;
+      name = "DICE_SUPRA"
+      console.log(`Deploying DiceSupra...`);
 
       await deployer.deploy(
-        CoinFlip,
+        Dice,
         networkData.VRF.Router,
         networkData.VRF.confirmations,
         gamesHub.address
       );
     }
 
-    coinFlip = await CoinFlip.deployed();
-    console.log(`CoinFlip deployed at ${coinFlip.address}`);
+    dice = await Dice.deployed();
+    console.log(`Dice deployed at ${dice.address}`);
 
-    networkData.COIN_FLIP = coinFlip.address;
+    networkData.DICE = dice.address;
     fs.writeFileSync(variablesPath, JSON.stringify(data, null, 2));
 
-    console.log(`Setting CoinFlip address to GamesHub...`);
+    console.log(`Setting Dice address to GamesHub...`);
     await gamesHub.setGameContact(
-      coinFlip.address,
+      dice.address,
       web3.utils.sha3(name),
       false
     );
 
-    console.log(`Minting 10000 tokens to CoinFlip...`);
+    console.log(`Minting 10000 tokens to Dice...`);
     const tokenSmallUnit = 10000 * 10 ** 6;
-    await fakeToken.mint(coinFlip.address, tokenSmallUnit);
+    await fakeToken.mint(dice.address, tokenSmallUnit);
 
   } else {
-    console.log(`CoinFlip already deployed at ${networkData.COIN_FLIP}`);
+    console.log(`Dice already deployed at ${networkData.DICE}`);
   }
 };
