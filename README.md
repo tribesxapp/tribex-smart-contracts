@@ -11,9 +11,7 @@ You'll need a compatible blockchain wallet (e.g., Rabby or MetaMask) with suffic
 - The oracle provides the randomness needed to determine the outcome.
 - If the player's call matches the result, they win; otherwise, they lose.
 
-![Screenshot 2023-12-18 at 13.58.38.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/175b749f-a082-441e-9a68-07279a13a156/b0e8a9f9-e3c1-41df-a4e8-f15cfa3620c6/Screenshot_2023-12-18_at_13.58.38.png)
-
-![Screenshot 2023-12-18 at 13.59.05.png](https://prod-files-secure.s3.us-west-2.amazonaws.com/175b749f-a082-441e-9a68-07279a13a156/b872041d-df6e-4caa-9dfe-f313edeabe2a/Screenshot_2023-12-18_at_13.59.05.png)
+![Screenshot 2023-12-18 at 13.58.38.png](https://dappv2-one.vercel.app/docs/coinflip/coinflip-map.png)
 
 ## **3. Odds and Fees**
 
