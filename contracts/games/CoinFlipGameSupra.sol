@@ -155,7 +155,7 @@ contract CoinFlipGameSupra {
             volume = game.amount - _fee;
             volume += game.amount;
             token.transfer(game.player, volume);
-            token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
+            // token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
             game.result = 2;
         }

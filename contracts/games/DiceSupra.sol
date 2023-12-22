@@ -168,7 +168,7 @@ contract DiceSupra {
 
             volume -= _fee;
             token.transfer(game.player, volume);
-            token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
+            // token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
             game.result = 2;
         }
