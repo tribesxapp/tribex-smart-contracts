@@ -34,8 +34,9 @@ contract DiceSupra {
         uint256 volumeIn,
         uint256 volumeOut,
         uint8 result,
-        uint256 randomness,
-        uint8 diceResult
+        uint8 diceResult,
+        uint256 fee,
+        address game
     );
     event LimitsAndChancesChanged(
         uint256 maxLimit,
@@ -50,6 +51,8 @@ contract DiceSupra {
         uint256 volume
     );
 
+    event KeepFeesChanged(bool _keepFees);
+
     IGamesHub public gamesHub;
     IERC20 public token;
     uint256 public totalBet;
@@ -58,6 +61,7 @@ contract DiceSupra {
     uint256 public feeFromBet = 7 * (10 ** 4); //default 7 cents
     uint8 public feePercFromWin = 15;
     bool limitTypeFixed = true;
+    bool keepFees = false;
     uint256 totalGames = 0;
 
     struct Games {
@@ -113,7 +117,11 @@ contract DiceSupra {
         gamesHub.incrementNonce();
 
         for (uint8 i = 0; i < 5; i++) {
-            if (_sides[i] > 0 && _sides[i] < 7 && !games[gamesHub.nonce()].sides[_sides[i]]) {
+            if (
+                _sides[i] > 0 &&
+                _sides[i] < 7 &&
+                !games[gamesHub.nonce()].sides[_sides[i]]
+            ) {
                 games[gamesHub.nonce()].sides[_sides[i]] = true;
                 games[gamesHub.nonce()].sizeBet += 1;
             }
@@ -154,21 +162,23 @@ contract DiceSupra {
      * @param nonce Request ID of the random number
      * @param rngList Random number
      */
-    function callback(uint256 nonce, uint256[] calldata rngList) external { 
+    function callback(uint256 nonce, uint256[] calldata rngList) external {
         Games storage game = games[gameNonce[nonce]];
         if (game.result > 0) return;
 
         uint256 volume = 0;
+        uint256 _fee = 0;
         uint8 diceResult = uint8((rngList[0] % 6)) + 1;
 
         if (game.sides[diceResult]) {
             game.result = 1;
             volume = (game.amount * 6) / game.sizeBet;
-            uint256 _fee = ((volume - game.amount) * feePercFromWin) / 1000;
+            _fee = ((volume - game.amount) * feePercFromWin) / 1000;
 
             volume -= _fee;
             token.transfer(game.player, volume);
-            // token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
+            if (keepFees)
+                token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
             game.result = 2;
         }
@@ -180,8 +190,9 @@ contract DiceSupra {
             game.amount,
             volume,
             game.result,
-            rngList[0],
-            diceResult
+            diceResult,
+            _fee,
+            address(this)
         );
     }
 
@@ -237,6 +248,17 @@ contract DiceSupra {
             _feeFromBet,
             _feePercFromWin
         );
+    }
+
+    /**
+     * @dev Change the keepFees variable
+     * @param _keepFees New value for keepFees
+     */
+    function changeKeepFees(bool _keepFees) public {
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
+        keepFees = _keepFees;
+
+        emit KeepFeesChanged(_keepFees);
     }
 
     /**

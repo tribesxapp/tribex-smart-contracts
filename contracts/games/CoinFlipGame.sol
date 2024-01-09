@@ -20,8 +20,9 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         uint256 volumeIn,
         uint256 volumeOut,
         uint8 result,
-        uint256 randomness,
-        bool heads
+        uint256 fee,
+        bool heads,
+        address game
     );
     event LimitsAndChancesChanged(
         uint256 maxLimit,
@@ -36,6 +37,8 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         uint256 volume
     );
 
+    event KeepFeesChanged(bool _keepFees);
+
     IGamesHub public gamesHub;
     IERC20 public token;
     uint256 public totalBet;
@@ -44,6 +47,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
     uint256 public feeFromBet = 7 * (10 ** 4); //default 7 cents
     uint8 public feePercFromWin = 15;
     bool limitTypeFixed = true;
+    bool keepFees = false;
     uint256 totalGames = 0;
 
     struct Games {
@@ -104,7 +108,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         require(balance >= ((totalBet + _amount) * 2), "CF-02");
 
         gamesHub.incrementNonce();
-        
+
         _amount -= feeFromBet;
 
         token.transferFrom(msg.sender, address(this), _amount);
@@ -144,15 +148,17 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         if (game.result > 0) return;
 
         uint256 volume = 0;
+        uint256 _fee = 0;
         bool heads = (_randomWords[0] % 2) == 1;
 
         if ((heads && game.heads) || (!heads && !game.heads)) {
             game.result = 1;
-            uint256 _fee = (game.amount * feePercFromWin) / 1000;
+            _fee = (game.amount * feePercFromWin) / 1000;
             volume = game.amount - _fee;
             volume += game.amount;
             token.transfer(game.player, volume);
-            // token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
+            if (keepFees)
+                token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
             game.result = 2;
         }
@@ -164,8 +170,9 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
             game.amount,
             volume,
             game.result,
-            _randomWords[0],
-            heads
+            _fee,
+            heads,
+            address(this)
         );
     }
 
@@ -221,6 +228,17 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
             _feeFromBet,
             _feePercFromWin
         );
+    }
+
+    /**
+     * @dev Change the keepFees variable
+     * @param _keepFees New value for keepFees
+     */
+    function changeKeepFees(bool _keepFees) public {
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
+        keepFees = _keepFees;
+
+        emit KeepFeesChanged(_keepFees);
     }
 
     /**

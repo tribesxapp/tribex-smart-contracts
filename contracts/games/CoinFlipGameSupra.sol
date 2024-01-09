@@ -34,8 +34,9 @@ contract CoinFlipGameSupra {
         uint256 volumeIn,
         uint256 volumeOut,
         uint8 result,
-        uint256 randomness,
-        bool heads
+        bool heads,
+        uint256 fee,
+        address game
     );
     event LimitsAndChancesChanged(
         uint256 maxLimit,
@@ -60,6 +61,7 @@ contract CoinFlipGameSupra {
     uint256 public feeFromBet = 7 * (10 ** 4); //default 7 cents
     uint8 public feePercFromWin = 15;
     bool limitTypeFixed = true;
+    bool keepFees = false;
     uint256 totalGames = 0;
 
     struct Games {
@@ -147,15 +149,17 @@ contract CoinFlipGameSupra {
         if (game.result > 0) return;
 
         uint256 volume = 0;
+        uint256 _fee = 0;
         bool heads = (rngList[0] % 2) == 1;
 
         if ((heads && game.heads) || (!heads && !game.heads)) {
             game.result = 1;
-            uint256 _fee = (game.amount * feePercFromWin) / 1000;
+            _fee = (game.amount * feePercFromWin) / 1000;
             volume = game.amount - _fee;
             volume += game.amount;
             token.transfer(game.player, volume);
-            // token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
+            if (keepFees)
+                token.transfer(gamesHub.helpers(keccak256("TREASURY")), _fee);
         } else {
             game.result = 2;
         }
@@ -167,8 +171,9 @@ contract CoinFlipGameSupra {
             game.amount,
             volume,
             game.result,
-            rngList[0],
-            heads
+            heads,
+            _fee,
+            address(this)
         );
     }
 
@@ -236,6 +241,19 @@ contract CoinFlipGameSupra {
         requestConfirmations = _requestConfirmations;
         emit ConfirmationsChanged(_requestConfirmations);
     }
+
+    /**
+     * @dev Change the keepFees variable
+     * @param _keepFees New value for keepFees
+     */
+    function changeKeepFees(bool _keepFees) public {
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
+        keepFees = _keepFees;
+
+        emit KeepFeesChanged(_keepFees);
+    }
+
+    event KeepFeesChanged(bool _keepFees);
 
     /**
      * @dev Change the token address, sending the current token balance to the admin wallet

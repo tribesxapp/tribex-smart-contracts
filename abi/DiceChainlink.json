@@ -117,15 +117,21 @@
       },
       {
         "indexed": false,
+        "internalType": "uint8",
+        "name": "diceResult",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
-        "name": "randomness",
+        "name": "fee",
         "type": "uint256"
       },
       {
         "indexed": false,
-        "internalType": "uint8",
-        "name": "diceResult",
-        "type": "uint8"
+        "internalType": "address",
+        "name": "game",
+        "type": "address"
       }
     ],
     "name": "GameFinished",
@@ -154,6 +160,19 @@
       }
     ],
     "name": "GameRefunded",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "_keepFees",
+        "type": "bool"
+      }
+    ],
+    "name": "KeepFeesChanged",
     "type": "event"
   },
   {
@@ -249,8 +268,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -263,8 +281,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -298,8 +315,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -312,8 +328,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -326,8 +341,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -340,8 +354,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -354,8 +367,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -386,8 +398,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -400,8 +411,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -419,9 +429,9 @@
   {
     "inputs": [
       {
-        "internalType": "uint256[5]",
+        "internalType": "uint8[5]",
         "name": "_sides",
-        "type": "uint256[5]"
+        "type": "uint8[5]"
       },
       {
         "internalType": "uint256",
@@ -476,6 +486,19 @@
       }
     ],
     "name": "changeLimitsAndChances",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "_keepFees",
+        "type": "bool"
+      }
+    ],
+    "name": "changeKeepFees",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
