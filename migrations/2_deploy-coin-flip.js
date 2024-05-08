@@ -70,5 +70,6 @@ module.exports = async function (deployer, network, accounts) {
 
   } else {
     console.log(`CoinFlip already deployed at ${networkData.COIN_FLIP}`);
+    // console.log(`Keccak COIN_FLIP: ${web3.utils.sha3("COIN_FLIP_SUPRA")}`);
   }
 };

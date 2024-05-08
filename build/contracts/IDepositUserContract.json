@@ -226,7 +226,7 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.0;\r\n\r\ninterface IDepositUserContract {\r\n\tfunction depositFundClient() external payable;\r\n\tfunction addContractToWhitelist(address _contractAddress) external;\r\n\tfunction removeContractFromWhitelist(address _contractAddress) external;\r\n\tfunction setMinBalanceClient(uint256 _limit) external;\r\n\tfunction withdrawFundClient(uint256 _amount) external;\r\n\tfunction checkClientFund(address _clientAddress) external view returns (uint256);\r\n\tfunction checkEffectiveBalance(address _clientAddress) external view returns (uint256);\r\n\tfunction checkMinBalanceSupra() external view returns (uint256);\r\n\tfunction checkMinBalance(address _clientAddress) external view returns(uint256);\r\n\tfunction countTotalWhitelistedContractByClient(address _clientAddress) external view returns (uint256);\r\n\tfunction getSubscriptionInfoByClient(address _clientAddress) external view returns (uint256, uint256, bool);\r\n\tfunction isMinimumBalanceReached(address _clientAddress) external view returns (bool);\r\n\tfunction listAllWhitelistedContractByClient(address _clientAddress) external view returns (address[] memory);\r\n\t\r\n}",
-  "sourcePath": "C:\\Users\\Gabriel\\Desktop\\TribeX\\contractsV2\\contracts\\interfaces\\IDepositUserContract.sol",
+  "sourcePath": "/home/gabesan/Área de trabalho/Projetos/PerfectPool/NewTribeX/tribex-smart-contracts/contracts/interfaces/IDepositUserContract.sol",
   "ast": {
     "absolutePath": "project:/contracts/interfaces/IDepositUserContract.sol",
     "exportedSymbols": {
@@ -1234,7 +1234,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-01-17T20:12:30.263Z",
+  "updatedAt": "2024-04-29T17:47:30.723Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

@@ -499,7 +499,7 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.19;\r\n\r\ninterface IGamesHub {\r\n    // Events\r\n    event GameContractSet(address _contract, bytes32 _role);\r\n    event GameContractRemoved(address _contract, bytes32 _role);\r\n    event SetAdminWallet(address _adminWallet);\r\n    event ExecutedCall(bytes32 gameName, bytes data, bytes returnData);\r\n    event PlayerRankingChanged(\r\n        address player,\r\n        bytes32 game,\r\n        uint256 volumeIn,\r\n        uint256 volumeOut,\r\n        bool win,\r\n        bool loss\r\n    );\r\n    event NonceIncremented(uint256 nonce);\r\n\r\n    // Structs\r\n    struct PlayerRanking {\r\n        bytes32 game;\r\n        uint256 volumeIn;\r\n        uint256 volumeOut;\r\n        uint256 wins;\r\n        uint256 losses;\r\n    }\r\n\r\n    // Public Variables\r\n    function games(bytes32) external view returns (address);\r\n\r\n    function helpers(bytes32) external view returns (address);\r\n\r\n    function adminWallet() external view returns (address);\r\n\r\n    function playerRanking(\r\n        address\r\n    ) external view returns (bytes32, uint256, uint256, uint256, uint256);\r\n\r\n    function nonce() external view returns (uint256);\r\n\r\n    // Constants\r\n    function ADMIN_ROLE() external pure returns (bytes32);\r\n\r\n    function DEV_ROLE() external pure returns (bytes32);\r\n\r\n    function GAME_CONTRACT() external pure returns (bytes32);\r\n\r\n    function NFT_POOL() external pure returns (bytes32);\r\n\r\n    function CREDIT_POOL() external pure returns (bytes32);\r\n\r\n    // Modifiers\r\n    function setGameContact(\r\n        address _contract,\r\n        bytes32 _name,\r\n        bool _isHelper\r\n    ) external;\r\n\r\n    function removeGameContact(\r\n        address _contract,\r\n        bytes32 _name,\r\n        bool _isHelper\r\n    ) external;\r\n\r\n    function executeCall(\r\n        bytes32 gameName,\r\n        bytes calldata data,\r\n        bool isHelper,\r\n        bool sendSender\r\n    ) external returns (bytes memory);\r\n\r\n    // View Functions\r\n    function getCreditPool() external view returns (address);\r\n\r\n    function getNFTPool() external view returns (address);\r\n\r\n    function retrieveTimestamp() external view returns (uint256);\r\n\r\n    function checkRole(\r\n        bytes32 role,\r\n        address account\r\n    ) external view returns (bool);\r\n\r\n    function changePlayerRanking(\r\n        address player,\r\n        bytes32 game,\r\n        uint256 volumeIn,\r\n        uint256 volumeOut,\r\n        bool win,\r\n        bool loss\r\n    ) external;\r\n\r\n    function incrementNonce() external;\r\n}\r\n",
-  "sourcePath": "C:\\Users\\Gabriel\\Desktop\\TribeX\\contractsV2\\contracts\\interfaces\\IGamesHub.sol",
+  "sourcePath": "/home/gabesan/Área de trabalho/Projetos/PerfectPool/NewTribeX/tribex-smart-contracts/contracts/interfaces/IGamesHub.sol",
   "ast": {
     "absolutePath": "project:/contracts/interfaces/IGamesHub.sol",
     "exportedSymbols": {
@@ -2844,7 +2844,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-01-17T20:12:30.265Z",
+  "updatedAt": "2024-04-29T17:47:30.724Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},

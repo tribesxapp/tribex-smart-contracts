@@ -8,7 +8,7 @@ module.exports = {
     base: {
       provider: () => new HDWalletProvider(privateKey, process.env.BASE_RPC_URL),
       network_id: 8453,
-      gasPrice: 2000,
+      gasPrice: 300000000,
       confirmations: 2,
       timeoutBlocks: 200,
       skipDryRun: true,

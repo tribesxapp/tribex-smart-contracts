@@ -28,7 +28,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         uint256 maxLimit,
         uint256 minLimit,
         bool limitTypeFixed,
-        uint8 feeFromBet,
+        uint256 feeFromBet,
         uint8 feePercFromWin
     );
     event GameRefunded(
@@ -44,7 +44,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
     uint256 public totalBet;
     uint256 public maxLimit = 1000 * (10 ** 6); //default 1000 USDC
     uint256 public minLimit = 1 * (10 ** 6); //default 1 USDC
-    uint256 public feeFromBet = 7 * (10 ** 4); //default 7 cents
+    uint256 public feeFromBet = 14 * (10 ** 4); //default 14 cents
     uint8 public feePercFromWin = 15;
     bool limitTypeFixed = true;
     bool keepFees = false;
@@ -204,7 +204,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         uint256 _maxLimit,
         uint256 _minLimit,
         bool _limitTypeFixed,
-        uint8 _feeFromBet,
+        uint256 _feeFromBet,
         uint8 _feePercFromWin
     ) public {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");

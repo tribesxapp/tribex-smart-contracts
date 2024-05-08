@@ -44,7 +44,7 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\ninterface IOwnable {\n  function owner() external returns (address);\n\n  function transferOwnership(address recipient) external;\n\n  function acceptOwnership() external;\n}\n",
-  "sourcePath": "@chainlink\\contracts\\src\\v0.8\\shared\\interfaces\\IOwnable.sol",
+  "sourcePath": "@chainlink/contracts/src/v0.8/shared/interfaces/IOwnable.sol",
   "ast": {
     "absolutePath": "@chainlink/contracts/src/v0.8/shared/interfaces/IOwnable.sol",
     "exportedSymbols": {
@@ -235,7 +235,7 @@
   },
   "networks": {},
   "schemaVersion": "3.4.16",
-  "updatedAt": "2024-01-17T20:12:30.149Z",
+  "updatedAt": "2024-04-29T17:47:30.635Z",
   "devdoc": {
     "kind": "dev",
     "methods": {},
