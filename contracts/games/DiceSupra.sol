@@ -1,27 +1,59 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.19;
 
+/**
+ * @title Dice Game from Degen OnChain
+ * @dev A decentralized dice game using Supra Oracles for randomness.
+ * 
+ * The game allows players to bet on the outcome of a dice roll. Players can choose to bet on one or more sides of the dice. 
+ * The contract interacts with the Supra Oracles to obtain a random number which determines the result of the dice roll.
+ * Solidity Version: 0.8.19 (this version deals automatically with overflows and underflows issues)
+ * 
+ * ## How the Game Works:
+ * 1. **Placing a Bet:**
+ *    - Players call the `rollDice` function, specifying the amount to bet and their choice of sides.
+ *    - The bet amount is transferred to the contract, and a small fee (`FEE_FROM_BET`) is deducted and sent to the treasury.
+ *    - A request is sent to the Supra Oracles to obtain a random number.
+ * 
+ * 2. **Determining the Outcome:**
+ *    - The Supra Oracles call the `callback` function with the random number.
+ *    - The contract determines the outcome of the game based on the player's bet and the random number.
+ *    - If the player wins, the winnings are transferred to the player's wallet, and a percentage fee (`FEE_PERC_FROM_WIN`) is deducted from the winnings and sent to the treasury.
+ *    - If the player loses, the bet amount is retained by the contract.
+ * 
+ * 3. **Fees:**
+ *    - `FEE_FROM_BET`: A constant fee deducted from each bet and sent to the treasury.
+ *    - `FEE_PERC_FROM_WIN`: A percentage fee deducted from the winnings of a successful bet.
+ *    - `keepFees`: A boolean variable indicating whether the fees should be kept by the contract or sent to the treasury.
+ * 
+ * ## Variables:
+ * - `gamesHub`: Interface to the GamesHub contract, used for managing game state and roles.
+ * - `token`: Interface to the ERC20 token used for betting.
+ * - `totalBet`: The total amount of tokens currently bet in the contract.
+ * - `maxLimit`: The maximum bet amount allowed.
+ * - `minLimit`: The minimum bet amount allowed.
+ * - `totalGames`: The total number of games played.
+ * - `games`: A mapping of game nonces to game details.
+ * - `gameNonce`: A mapping of Supra Oracles request nonces to game nonces.
+ * - `supraAddr`: The address of the Supra Oracles contract.
+ * - `deployer`: The address of the contract deployer.
+ * - `requestConfirmations`: The number of confirmations required for the Supra Oracles request.
+ * 
+ * ## Events:
+ * - `DiceRolled`: Emitted when a player rolls the dice.
+ * - `GameFinished`: Emitted when the outcome of a game is determined.
+ * - `LimitsChanged`: Emitted when the betting limits are changed.
+ * - `GameRefunded`: Emitted when a game is refunded.
+ * - `ConfirmationsChanged`: Emitted when the number of confirmations required for the Supra Oracles request is changed.
+ * - `KeepFeesChanged`: Emitted when the `keepFees` variable is changed.
+ */
+
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../interfaces/IGamesHub.sol";
 import "../interfaces/IERC20.sol";
+import "../interfaces/ISupraRouter.sol";
 
-interface ISupraRouter {
-    function generateRequest(
-        string memory _functionSig,
-        uint8 _rngCount,
-        uint256 _numConfirmations,
-        uint256 _clientSeed,
-        address _clientWalletAddress
-    ) external returns (uint256);
-
-    function generateRequest(
-        string memory _functionSig,
-        uint8 _rngCount,
-        uint256 _numConfirmations,
-        address _clientWalletAddress
-    ) external returns (uint256);
-}
-
-contract DiceSupra {
+contract DiceSupra is ReentrancyGuard {
     event DiceRolled(
         address indexed player,
         uint256 indexed nonce,
@@ -38,18 +70,14 @@ contract DiceSupra {
         uint256 fee,
         address game
     );
-    event LimitsAndChancesChanged(
-        uint256 maxLimit,
-        uint256 minLimit,
-        bool limitTypeFixed,
-        uint256 feeFromBet,
-        uint8 feePercFromWin
-    );
+    event LimitsChanged(uint256 maxLimit, uint256 minLimit);
     event GameRefunded(
         uint256 indexed nonce,
         address indexed player,
         uint256 volume
     );
+
+    event ConfirmationsChanged(uint16 _requestConfirmations);
 
     event KeepFeesChanged(bool _keepFees);
 
@@ -58,9 +86,8 @@ contract DiceSupra {
     uint256 public totalBet;
     uint256 public maxLimit = 1000 * (10 ** 6); //default 1000 USDC
     uint256 public minLimit = 1 * (10 ** 6); //default 1 USDC
-    uint256 public feeFromBet = 14 * (10 ** 4); //default 14 cents
-    uint8 public feePercFromWin = 15;
-    bool limitTypeFixed = true;
+    uint256 public constant FEE_FROM_BET = 10 * (10 ** 4); //default 10 cents
+    uint8 public constant FEE_PERC_FROM_WIN = 20;
     bool keepFees = false;
     uint256 totalGames = 0;
 
@@ -99,19 +126,13 @@ contract DiceSupra {
      * @param _sides Array of 5 sides to bet on (numbers 1 to 6, 0 if side not chosen)
      * @param _amount Amount of tokens to bet
      */
-    function rollDice(uint8[5] memory _sides, uint256 _amount) external {
+    function rollDice(
+        uint8[5] memory _sides,
+        uint256 _amount
+    ) external nonReentrant {
         uint256 balance = token.balanceOf(address(this));
 
-        if (limitTypeFixed) {
-            require(_amount <= maxLimit && _amount >= minLimit, "DC-01");
-        } else {
-            require(
-                _amount <= (maxLimit * balance) / 100 &&
-                    _amount >= (minLimit * balance) / 100,
-                "DC-01"
-            );
-        }
-
+        require(_amount <= maxLimit && _amount >= minLimit, "DC-01");
         require(balance >= ((totalBet + _amount) * 6), "DC-02");
 
         gamesHub.incrementNonce();
@@ -129,14 +150,14 @@ contract DiceSupra {
 
         require(games[gamesHub.nonce()].sizeBet > 0, "DC-09");
 
-        _amount -= feeFromBet;
+        _amount -= FEE_FROM_BET;
 
         token.transferFrom(msg.sender, address(this), _amount);
         // Sending fee to the house
         token.transferFrom(
             msg.sender,
             gamesHub.helpers(keccak256("TREASURY")),
-            feeFromBet
+            FEE_FROM_BET
         );
 
         games[gamesHub.nonce()].player = msg.sender;
@@ -162,7 +183,10 @@ contract DiceSupra {
      * @param nonce Request ID of the random number
      * @param rngList Random number
      */
-    function callback(uint256 nonce, uint256[] calldata rngList) external {
+    function callback(
+        uint256 nonce,
+        uint256[] calldata rngList
+    ) external nonReentrant {
         Games storage game = games[gameNonce[nonce]];
         if (game.result > 0) return;
 
@@ -173,7 +197,7 @@ contract DiceSupra {
         if (game.sides[diceResult]) {
             game.result = 1;
             volume = (game.amount * 6) / game.sizeBet;
-            _fee = ((volume - game.amount) * feePercFromWin) / 1000;
+            _fee = ((volume - game.amount) * FEE_PERC_FROM_WIN) / 1000;
 
             volume -= _fee;
             token.transfer(game.player, volume);
@@ -200,54 +224,44 @@ contract DiceSupra {
      * @dev Refund the game to the player. To use only if some game is stuck.
      * @param _nonce Nonce of the game
      */
-    function refundGame(uint256 _nonce) external {
+    function refundGame(uint256 _nonce) external nonReentrant {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         Games storage game = games[_nonce];
         require(game.result == 0, "DC-04");
 
         token.transfer(game.player, game.amount);
         totalBet -= game.amount;
+
+        //changing result to refunded
         game.result = 3;
 
         emit GameRefunded(_nonce, game.player, game.amount);
     }
 
     /**
-     * @dev Change the house chance and bet limit
+     * @dev Change the bet limit
      * @param _maxLimit maximum bet limit
      * @param _minLimit minimum bet limit
-     * @param _limitTypeFixed if true, the bet limit will be fixed, if false, the bet limit will be a percentage of the contract balance
-     * @param _feeFromBet fee from the bet
-     * @param _feePercFromWin fee percentage from the win
      */
-    function changeLimitsAndChances(
-        uint256 _maxLimit,
-        uint256 _minLimit,
-        bool _limitTypeFixed,
-        uint256 _feeFromBet,
-        uint8 _feePercFromWin
-    ) public {
+    function changeLimits(uint256 _maxLimit, uint256 _minLimit) public {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         require(_maxLimit >= _minLimit, "DC-06");
-        require(_feePercFromWin <= 500, "DC-08");
-
-        if (!limitTypeFixed) {
-            require(_maxLimit <= 100 && _minLimit <= 100, "DC-12");
-        }
+        require(_minLimit > FEE_FROM_BET, "DC-08");
 
         maxLimit = _maxLimit;
         minLimit = _minLimit;
-        limitTypeFixed = _limitTypeFixed;
-        feeFromBet = _feeFromBet;
-        feePercFromWin = _feePercFromWin;
 
-        emit LimitsAndChancesChanged(
-            _minLimit,
-            _maxLimit,
-            _limitTypeFixed,
-            _feeFromBet,
-            _feePercFromWin
-        );
+        emit LimitsChanged(_minLimit, _maxLimit);
+    }
+
+    /**
+     * @dev Change the number of confirmations required for the request
+     * @param _requestConfirmations Number of confirmations
+     */
+    function changeConfirmations(uint16 _requestConfirmations) public {
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
+        requestConfirmations = _requestConfirmations;
+        emit ConfirmationsChanged(_requestConfirmations);
     }
 
     /**
@@ -255,7 +269,7 @@ contract DiceSupra {
      * @param _keepFees New value for keepFees
      */
     function changeKeepFees(bool _keepFees) public {
-        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
+        require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         keepFees = _keepFees;
 
         emit KeepFeesChanged(_keepFees);
@@ -263,9 +277,10 @@ contract DiceSupra {
 
     /**
      * @dev Change the token address, sending the current token balance to the admin wallet
+     * It's only possible if there are no games in progress
      * @param _token New token address
      */
-    function changeToken(address _token) public {
+    function changeToken(address _token) public nonReentrant {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         require(totalBet == 0, "DC-07");
 
@@ -275,9 +290,10 @@ contract DiceSupra {
 
     /**
      * @dev Withdraw tokens from the contract to the admin wallet
+     * It's only possible if there are no games in progress
      * @param _amount Amount of tokens to withdraw
      */
-    function withdrawTokens(uint256 _amount) public {
+    function withdrawTokens(uint256 _amount) public nonReentrant {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         require(totalBet == 0, "DC-07");
 

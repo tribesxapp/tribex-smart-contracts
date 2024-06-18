@@ -171,32 +171,14 @@
         "internalType": "uint256",
         "name": "minLimit",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "limitTypeFixed",
-        "type": "bool"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "feeFromBet",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "feePercFromWin",
-        "type": "uint8"
       }
     ],
-    "name": "LimitsAndChancesChanged",
+    "name": "LimitsChanged",
     "type": "event"
   },
   {
     "inputs": [],
-    "name": "feeFromBet",
+    "name": "FEE_FROM_BET",
     "outputs": [
       {
         "internalType": "uint256",
@@ -210,7 +192,7 @@
   },
   {
     "inputs": [],
-    "name": "feePercFromWin",
+    "name": "FEE_PERC_FROM_WIN",
     "outputs": [
       {
         "internalType": "uint8",
@@ -401,24 +383,9 @@
         "internalType": "uint256",
         "name": "_minLimit",
         "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "_limitTypeFixed",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_feeFromBet",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_feePercFromWin",
-        "type": "uint8"
       }
     ],
-    "name": "changeLimitsAndChances",
+    "name": "changeLimits",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

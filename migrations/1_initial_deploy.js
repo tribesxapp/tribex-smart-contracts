@@ -1,6 +1,7 @@
 const fs = require("fs-extra");
 const path = require("path");
 const FakeUSDCToken = artifacts.require("utils/FakeUSDCToken");
+const FakeUSDTToken = artifacts.require("utils/FakeUSDTToken");
 const GamesHub = artifacts.require("GamesHub");
 
 module.exports = async function (deployer, network, accounts) {
@@ -59,5 +60,25 @@ module.exports = async function (deployer, network, accounts) {
     );
   } else {
     console.log(`FakeUSDCToken already deployed at ${networkData.TOKEN_ADDRESS}`);
+  }
+
+  /// Deploy FakeUSDTToken
+  if (networkData.TOKEN2_ADDRESS === "") {
+    console.log(`Deploying FakeUSDTToken...`);
+    await deployer.deploy(FakeUSDTToken);
+    fakeToken = await FakeUSDTToken.deployed();
+    console.log(`FakeUSDTToken deployed at ${fakeToken.address}`);
+
+    networkData.TOKEN2_ADDRESS = fakeToken.address;
+    fs.writeFileSync(variablesPath, JSON.stringify(data, null, 2));
+
+    console.log(`Setting token address to GamesHub...`);
+    await gamesHub.setGameContact(
+      fakeToken.address,
+      web3.utils.sha3("TOKEN2"),
+      true
+    );
+  } else {
+    console.log(`FakeUSDTToken already deployed at ${networkData.TOKEN2_ADDRESS}`);
   }
 };

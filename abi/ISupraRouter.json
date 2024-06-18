@@ -1,0 +1,75 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_functionSig",
+        "type": "string"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_rngCount",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_numConfirmations",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_clientSeed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_clientWalletAddress",
+        "type": "address"
+      }
+    ],
+    "name": "generateRequest",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "_functionSig",
+        "type": "string"
+      },
+      {
+        "internalType": "uint8",
+        "name": "_rngCount",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_numConfirmations",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "_clientWalletAddress",
+        "type": "address"
+      }
+    ],
+    "name": "generateRequest",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+]

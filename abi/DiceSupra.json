@@ -24,6 +24,19 @@
     "anonymous": false,
     "inputs": [
       {
+        "indexed": false,
+        "internalType": "uint16",
+        "name": "_requestConfirmations",
+        "type": "uint16"
+      }
+    ],
+    "name": "ConfirmationsChanged",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
         "indexed": true,
         "internalType": "address",
         "name": "player",
@@ -158,32 +171,14 @@
         "internalType": "uint256",
         "name": "minLimit",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "bool",
-        "name": "limitTypeFixed",
-        "type": "bool"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "feeFromBet",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint8",
-        "name": "feePercFromWin",
-        "type": "uint8"
       }
     ],
-    "name": "LimitsAndChancesChanged",
+    "name": "LimitsChanged",
     "type": "event"
   },
   {
     "inputs": [],
-    "name": "feeFromBet",
+    "name": "FEE_FROM_BET",
     "outputs": [
       {
         "internalType": "uint256",
@@ -192,12 +187,11 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
-    "name": "feePercFromWin",
+    "name": "FEE_PERC_FROM_WIN",
     "outputs": [
       {
         "internalType": "uint8",
@@ -206,8 +200,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -241,8 +234,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -255,8 +247,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -269,8 +260,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -283,8 +273,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -297,8 +286,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -311,8 +299,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [],
@@ -325,8 +312,7 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function",
-    "constant": true
+    "type": "function"
   },
   {
     "inputs": [
@@ -388,24 +374,22 @@
         "internalType": "uint256",
         "name": "_minLimit",
         "type": "uint256"
-      },
-      {
-        "internalType": "bool",
-        "name": "_limitTypeFixed",
-        "type": "bool"
-      },
-      {
-        "internalType": "uint256",
-        "name": "_feeFromBet",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint8",
-        "name": "_feePercFromWin",
-        "type": "uint8"
       }
     ],
-    "name": "changeLimitsAndChances",
+    "name": "changeLimits",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint16",
+        "name": "_requestConfirmations",
+        "type": "uint16"
+      }
+    ],
+    "name": "changeConfirmations",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
