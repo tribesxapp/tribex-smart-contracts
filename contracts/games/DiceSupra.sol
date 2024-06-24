@@ -4,28 +4,28 @@ pragma solidity ^0.8.19;
 /**
  * @title Dice Game from Degen OnChain
  * @dev A decentralized dice game using Supra Oracles for randomness.
- * 
- * The game allows players to bet on the outcome of a dice roll. Players can choose to bet on one or more sides of the dice. 
+ *
+ * The game allows players to bet on the outcome of a dice roll. Players can choose to bet on one or more sides of the dice.
  * The contract interacts with the Supra Oracles to obtain a random number which determines the result of the dice roll.
  * Solidity Version: 0.8.19 (this version deals automatically with overflows and underflows issues)
- * 
+ *
  * ## How the Game Works:
  * 1. **Placing a Bet:**
  *    - Players call the `rollDice` function, specifying the amount to bet and their choice of sides.
  *    - The bet amount is transferred to the contract, and a small fee (`FEE_FROM_BET`) is deducted and sent to the treasury.
  *    - A request is sent to the Supra Oracles to obtain a random number.
- * 
+ *
  * 2. **Determining the Outcome:**
  *    - The Supra Oracles call the `callback` function with the random number.
  *    - The contract determines the outcome of the game based on the player's bet and the random number.
  *    - If the player wins, the winnings are transferred to the player's wallet, and a percentage fee (`FEE_PERC_FROM_WIN`) is deducted from the winnings and sent to the treasury.
  *    - If the player loses, the bet amount is retained by the contract.
- * 
+ *
  * 3. **Fees:**
  *    - `FEE_FROM_BET`: A constant fee deducted from each bet and sent to the treasury.
  *    - `FEE_PERC_FROM_WIN`: A percentage fee deducted from the winnings of a successful bet.
  *    - `keepFees`: A boolean variable indicating whether the fees should be kept by the contract or sent to the treasury.
- * 
+ *
  * ## Variables:
  * - `gamesHub`: Interface to the GamesHub contract, used for managing game state and roles.
  * - `token`: Interface to the ERC20 token used for betting.
@@ -38,7 +38,7 @@ pragma solidity ^0.8.19;
  * - `supraAddr`: The address of the Supra Oracles contract.
  * - `deployer`: The address of the contract deployer.
  * - `requestConfirmations`: The number of confirmations required for the Supra Oracles request.
- * 
+ *
  * ## Events:
  * - `DiceRolled`: Emitted when a player rolls the dice.
  * - `GameFinished`: Emitted when the outcome of a game is determined.
@@ -276,7 +276,7 @@ contract DiceSupra is ReentrancyGuard {
     }
 
     /**
-     * @dev Change the token address, sending the current token balance to the admin wallet
+     * @dev Change the token address, sending the current token balance to the treasury wallet
      * It's only possible if there are no games in progress
      * @param _token New token address
      */
@@ -284,7 +284,10 @@ contract DiceSupra is ReentrancyGuard {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         require(totalBet == 0, "DC-07");
 
-        token.transfer(gamesHub.adminWallet(), token.balanceOf(address(this)));
+        token.transfer(
+            gamesHub.helpers(keccak256("TREASURY")),
+            token.balanceOf(address(this))
+        );
         token = IERC20(_token);
     }
 

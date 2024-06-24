@@ -262,14 +262,17 @@ contract DiceChainlink is VRFConsumerBaseV2, ConfirmedOwner {
     }
 
     /**
-     * @dev Change the token address, sending the current token balance to the admin wallet
+     * @dev Change the token address, sending the current token balance to the treasury wallet
      * @param _token New token address
      */
     function changeToken(address _token) public {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "DC-05");
         require(totalBet == 0, "DC-07");
 
-        token.transfer(gamesHub.adminWallet(), token.balanceOf(address(this)));
+        token.transfer(
+            gamesHub.helpers(keccak256("TREASURY")),
+            token.balanceOf(address(this))
+        );
         token = IERC20(_token);
     }
 

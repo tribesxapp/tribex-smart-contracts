@@ -37,7 +37,7 @@ module.exports = async function (deployer, network, accounts) {
     );
   } else {
     gamesHub = await GamesHub.at(networkData.GAMES_HUB);
-    console.log(`GamesHub loaded at ${gamesHub.address}`);
+    console.log(`GamesHub loaded at ${networkData.GAMES_HUB}`);
   }
 
   /// Deploy FakeUSDCToken
@@ -59,7 +59,9 @@ module.exports = async function (deployer, network, accounts) {
       true
     );
   } else {
-    console.log(`FakeUSDCToken already deployed at ${networkData.TOKEN_ADDRESS}`);
+    console.log(
+      `FakeUSDCToken already deployed at ${networkData.TOKEN_ADDRESS}`
+    );
   }
 
   /// Deploy FakeUSDTToken
@@ -79,6 +81,8 @@ module.exports = async function (deployer, network, accounts) {
       true
     );
   } else {
-    console.log(`FakeUSDTToken already deployed at ${networkData.TOKEN2_ADDRESS}`);
+    console.log(
+      `FakeUSDTToken already deployed at ${networkData.TOKEN2_ADDRESS}`
+    );
   }
 };

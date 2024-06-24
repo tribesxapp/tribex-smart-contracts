@@ -58,6 +58,9 @@ module.exports = async function (deployer, network, accounts) {
 
     networkData.DICE = dice.address;
     fs.writeFileSync(variablesPath, JSON.stringify(data, null, 2));
+    
+    //wait 5 seconds
+    await new Promise((r) => setTimeout(r, 5000));
 
     console.log(`Setting Dice address to GamesHub...`);
     await gamesHub.setGameContact(

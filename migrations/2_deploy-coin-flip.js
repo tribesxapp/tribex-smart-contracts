@@ -57,6 +57,9 @@ module.exports = async function (deployer, network, accounts) {
     networkData.COIN_FLIP = coinFlip.address;
     fs.writeFileSync(variablesPath, JSON.stringify(data, null, 2));
 
+    //wait 5 seconds
+    await new Promise((r) => setTimeout(r, 5000));
+
     console.log(`Setting CoinFlip address to GamesHub...`);
     await gamesHub.setGameContact(
       coinFlip.address,

@@ -249,7 +249,7 @@ contract CoinFlipGame is VRFConsumerBaseV2, ConfirmedOwner {
         require(gamesHub.checkRole(gamesHub.ADMIN_ROLE(), msg.sender), "CF-05");
         require(totalBet == 0, "CF-07");
 
-        token.transfer(gamesHub.adminWallet(), token.balanceOf(address(this)));
+        token.transfer(gamesHub.helpers(keccak256("TREASURY")), token.balanceOf(address(this)));
         token = IERC20(_token);
     }
 
